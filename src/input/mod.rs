@@ -369,7 +369,20 @@ impl State {
                     let new_under = State::surface_under(position, &output, &shell)
                         .map(|(target, pos)| (target, pos.as_logical()));
 
-                    std::mem::drop(shell);
+                     std::mem::drop(shell);
+                    if pointer_locked {
+                        ptr.relative_motion(
+                            self,
+                            under.clone(),
+                            &RelativeMotionEvent {
+                                delta: event.delta(),
+                                delta_unaccel: event.delta_unaccel(),
+                                utime: event.time(),
+                            },
+                        );
+                        ptr.frame(self);
+                        return;
+                    }
                     ptr.relative_motion(
                         self,
                         under.clone(),
@@ -379,11 +392,6 @@ impl State {
                             utime: event.time(),
                         },
                     );
-
-                    if pointer_locked {
-                        ptr.frame(self);
-                        return;
-                    }
 
                     if ptr.is_grabbed() {
                         if seat
